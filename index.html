@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS.">
+  <meta name="keywords" content="RobustSplat">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS</title>
+
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <link rel="stylesheet" href="./test/dics.css">
+  <script src="./test/dics.js"></script>
+  <script src="./test/video_comparison.js"></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+
+
+<body>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS</h1>
+          <h2 class="title is-4" style="margin-top: 0; margin-bottom: 0">arXiv 2025</h2>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://github.com/fcyycf">Chuanyu Fu</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://zyqz97.github.io/">Yuqi Zhang</a><sup>2,3</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://kbyao357.github.io/">Kunbin Yao</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://guanyingc.github.io/">Guanying Chen</a><sup>1*</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=DWe0-5QAAAAJ&hl=en">Yuan Xiong</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://myweb.cuhk.edu.cn/huangchuan">Chuan Huang</a><sup>3,2</sup>,
+            </span>
+            <br>
+            <span class="author-block">
+              <a href="https://scholar.google.com.hk/citations?user=1o_qvR0AAAAJ&hl=en">Shuguang Cui</a><sup>3,2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scst.sysu.edu.cn/members/caoxiaochun.htm">Xiaochun Cao</a><sup>1</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>Sun Yat-sen University,</span>
+            <span class="author-block"><sup>2</sup>FNii-Shenzhen,</span>
+            <span class="author-block"><sup>3</sup>SSE, CUHKSZ</span>
+          </div>
+
+          <div class="is-size-6 publication-authors">
+            <span class="author-block"><sup>*</sup>Corresponding author</span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/xxx.xxx"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                      <!-- <i class="fas fa-file-pdf"></i> -->
+                  </span>
+                  <span>arXiv</span>
+                  <p></p>
+                  <!-- <span>Paper</span> -->
+                </a>
+              </span>
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/xxx/xxx"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>
+              <!-- Dataset Link. -->
+              <span class="link-block">
+                <a href="https://github.com/xxx/xxx"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="far fa-images"></i>
+                  </span>
+                  <span>Data</span>
+                  </a>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Animation title. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Animation Results</h2>
+      </div>
+    </div>
+    <!--/ Animation title. -->
+
+    <!-- scenes. -->
+    <div class="column has-text-centered">
+      <span><strong style="font-size: 1.5rem; color: gray;">Scenes: &nbsp;&nbsp;&nbsp; </strong></span>
+      <button class="button-17" role="button" id="btn_corner_flip" onclick="changeSceneFLIP(this.innerText)">Corner</button>
+      <button class="button-17" role="button" id="btn_fountain_flip" onclick="changeSceneFLIP(this.innerText)">Fountain</button>
+      <button class="button-17" role="button" id="btn_mountain_flip" onclick="changeSceneFLIP(this.innerText)">Mountain</button>
+      <button class="button-17" role="button" id="btn_patio_flip" onclick="changeSceneFLIP(this.innerText)">Patio</button>
+      <button class="button-17" role="button" id="btn_patio-high_flip" onclick="changeSceneFLIP(this.innerText)">Patio-High</button>
+      <button class="button-17-selected" role="button" id="btn_spot_flip" onclick="changeSceneFLIP(this.innerText)">Spot</button>
+    </div>
+    <!-- scenes. -->
+    <!-- scenes. -->
+    <div class="column has-text-centered">
+      <button class="button-17" role="button" id="btn_android_flip" onclick="changeSceneFLIP(this.innerText)">Android</button>
+      <button class="button-17" role="button" id="btn_crab2_flip" onclick="changeSceneFLIP(this.innerText)">Crab2</button>
+      <button class="button-17" role="button" id="btn_statue_flip" onclick="changeSceneFLIP(this.innerText)">Statue</button>
+      <button class="button-17" role="button" id="btn_yoda_flip" onclick="changeSceneFLIP(this.innerText)">Yoda</button>
+    </div>
+    <!-- scenes. -->
+
+    <!-- comparison. -->
+    <div class="columns is-centered">
+        <div class="column">
+            <div class="content">
+                <div class="columns is-centered">
+                    <div class="column is-full-width has-text-centered">
+                        <video class="video" id="flipvideo" loop="" playsinline="" autoplay="" muted="" src="video/spot_3DGS_video_loop.mp4" onplay="resizeAndPlay(this)" style="height: 0px;"></video>
+                        <canvas class="videoMerge" id="flipvideoMerge" style="width: 35vw; display: block; margin: 0 auto;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- comparison. -->
+
+    <!-- method -->
+    <div class="column has-text-centered">
+      <span><strong style="font-size: 1.5rem; color: gray;">Methods: &nbsp;&nbsp;&nbsp; </strong></span>
+      <button class="button-17-selected" role="button" id="btn_3DGS_method" onclick="changeMethodFLIP('3DGS')">3DGS</button>
+      <button class="button-17" role="button" id="btn_SpotLessSplats_method" onclick="changeMethodFLIP('SpotLessSplats')">SpotLessSplats</button>
+      <button class="button-17" role="button" id="btn_Robust3DGS_method" onclick="changeMethodFLIP('Robust3DGS')">Robust3DGS</button>
+    </div>
+    <script>
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          document.getElementById('flipvideo').onplay = function() {
+            resizeAndPlay(this);
+          };
+        });
+      } else {
+        document.getElementById('flipvideo').onplay = function() {
+          resizeAndPlay(this);
+        };
+      }
+    </script>
+    <!-- method -->
+  </div>
+</section>
+
+
+
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            3D Gaussian Splatting (3DGS) has gained significant attention for its real-time, photo-realistic rendering in novel-view synthesis and 3D modeling. 
+            However, existing methods struggle with accurately modeling scenes affected by transient objects, leading to artifacts in the rendered images.
+            We identify that the Gaussian densification process, while enhancing scene detail capture, unintentionally contributes to these artifacts by growing additional Gaussians that model transient disturbances.
+            To address this, we propose RobustSplat, a robust solution based on two critical designs. 
+            First, we introduce a delayed Gaussian growth strategy that prioritizes optimizing static scene structure before allowing Gaussian splitting/cloning, mitigating overfitting to transient objects in early optimization. 
+            Second, we design a scale-cascaded mask bootstrapping approach that first leverages lower-resolution feature similarity supervision for reliable initial transient mask estimation, taking advantage of its stronger semantic consistency and robustness to noise, and then progresses to high-resolution supervision to achieve more precise mask prediction.
+            Extensive experiments on multiple challenging datasets show that our method outperforms existing methods, clearly demonstrating the robustness and effectiveness of our method. 
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- motivation. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Key Motivation</h2>
+        <div class="content has-text-justified">
+          <p>
+            We identify that the Gaussian densifcation process, while enhancing scene detail capture, unintentionally contributes to these artifacts by growing additional Gaussians that model transient disturbances.
+          </p>
+        </div>
+        <video id="motivation_patiohigh" autoplay controls muted loop playsinline height="100%">
+          <source src="video/motivation_patiohigh.mp4" type="video/mp4">
+        </video>
+        <p></p>
+        <video id="motivation_mountain" autoplay controls muted loop playsinline height="100%">
+          <source src="video/motivation_mountain.mp4" type="video/mp4">
+        </video>
+        <div style="height: 40px;"></div>
+        <h3 class="title is-5">Analysis of Gaussian densification in transient object fitting</h3>
+        <img src="./static/images/densification_analysis.jpg" alt="Densification Analysis" style="width: 66%; display: block; margin: 0 auto;">
+        <div class="content has-text-justified">
+          <p>
+            As training progresses, vanilla 3DGS suffers from performance degradation and exhibits artifacts due to the increasing number of Gaussians. 
+            Disabling Gaussian densification notably improves the results, even achieving performance comparable to the recent robust method SpotLessSplats. 
+            Despite producing transient-free rendering, 3DGS w/o densification struggles to recover fine details in regions with sparse Gaussian initialization (highlighted by red arrows).
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- motivation. -->
+  </div>
+</section>
+
+
+
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Method. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Methodology</h2>
+        <img src="./static/images/pipeline.jpg" alt="Pipeline">
+        <div class="content has-text-justified">
+          <p>
+            We introduce RobustSplat, a robust framework for transient-free 3D Gaussian Splatting, effectively mitigating artifacts caused by transient objects in dynamic scenes. 
+            Built on our analysis on the relation between Gaussians densification and artifacts caused by transient objects, 
+            our approach integrates a delayed Gaussian growth strategy to prioritize static scene optimization and a scale-cascaded mask bootstrapping method for reliable transient object suppression.
+          </p>
+        </div>
+
+
+      </div>
+    </div>
+    <!--/ Method. -->
+
+    <!-- Paper video. -->
+    <!-- <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Video</h2>
+        <div class="publication-video">
+          <iframe src="https://www.bilibili.com/"
+                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div> -->
+    <!--/ Paper video. -->
+
+
+  </div>
+</section>
+
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@arXiv{2025robustsplat,
+      author  = {Chuanyu Fu, Yuqi Zhang, Kunbin Yao, Guanying Chen, Yuan Xiong, Chuan Huang, Shuguang Cui, Xiaochun Cao},
+      title   = {RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS},
+      journal = {arXiv},
+      year    = {2025},
+    }</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            We thank the authors of <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a> that kindly open sourced the template of this website.
+            We also thank the authors of <a href="https://cekavis.site/VRSplat">VRSplat</a> for inspiring our animation results, which was originally inspired by <a href="https://dorverbin.github.io/refnerf/">Ref-NeRF</a> and <a href="https://reconfusion.github.io/">Reconfusion</a>.    
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
