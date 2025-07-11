@@ -1,6 +1,13 @@
-# RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS
+<h1 align="center">RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS</h1>
 
-### [Project Page](https://fcyycf.github.io/RobustSplat/) | [Paper](https://arxiv.org/abs/2506.02751)
+<div align="center">
+
+[![Project Page](https://img.shields.io/badge/🌐-Project_Page-blueviolet)](https://fcyycf.github.io/RobustSplat/)
+[![arXiv Paper](https://img.shields.io/badge/📜-arXiv:2506-02751)](https://arxiv.org/abs/2506.02751)
+[![HuggingFace](https://img.shields.io/badge/🤗-Data-blue)](https://huggingface.co/fcy99/RobustSplat/)
+
+</div>
+
 ![](assets/pipeline.png)
 
 <!-- ## Abstract
@@ -74,7 +81,7 @@ python metrics.py -m <model path>
 ```
 
 ## TODO List
-- [ ] Release our prepared datasets.
+- [x] Release our prepared datasets.
 - [ ] Release our checkpoints.
 
 
