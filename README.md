@@ -2,9 +2,10 @@
 
 <div align="center">
 
-[![Project Page](https://img.shields.io/badge/🌐-Project_Page-blueviolet)](https://fcyycf.github.io/RobustSplat/)
-[![arXiv Paper](https://img.shields.io/badge/📜-arXiv:2506-02751)](https://arxiv.org/abs/2506.02751)
-[![HuggingFace](https://img.shields.io/badge/🤗-Data-blue)](https://huggingface.co/fcy99/RobustSplat/)
+[![Project Page](https://img.shields.io/badge/🌐-Project_Page-blue)](https://fcyycf.github.io/RobustSplat/)
+[![arXiv Paper](https://img.shields.io/badge/📃-arXiv:2506.02751-b31b1b)](https://arxiv.org/abs/2506.02751)
+[![Dataset](https://img.shields.io/badge/🤗-Datasets-yellow)](https://huggingface.co/datasets/fcy99/RobustSplat-data)
+[![HuggingFace](https://img.shields.io/badge/🤗-Checkpoints-yellow)](https://huggingface.co/fcy99/RobustSplat-checkpoints)
 
 </div>
 
@@ -31,6 +32,8 @@ We use the following datasets in our experiments：
 [RobustNeRF dataset](https://robustnerf.github.io/)
 
 > **Note:** Since NeRF *On-the-go* does not include SfM data and RobustNeRF provides OpenCV-formatted camera parameters, we re-ran SfM for 3DGS-codebase requirments.
+
+> Our pre-processed datasets are available at https://huggingface.co/datasets/fcy99/RobustSplat-data.
 
 ## Preparing Datasets
 
@@ -82,18 +85,17 @@ python metrics.py -m <model path>
 
 ## TODO List
 - [x] Release our prepared datasets.
-- [ ] Release our checkpoints.
+- [x] Release our checkpoints.
 
 
 ## Citation
 If you find this work useful, please consider citing:
 ```bibtex
-@article{2025RobustSplat,
-    author = {Chuanyu Fu, Yuqi Zhang, Kunbin Yao, Guanying Chen, Yuan Xiong, Chuan Huang, 
-              Shuguang Cui, Xiaochun Cao},
-    title = {RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS},
-    booktitle = {arXiv preprint arXiv:2506.02751},
-    year = {2025}
+@inproceedings{2025RobustSplat,
+    author    = {Fu, Chuanyu and Zhang, Yuqi and Yao, Kunbin and Chen, Guanying and Xiong, Yuan and Huang, Chuan and Cui, Shuguang and Cao, Xiaochun},
+    title     = {RobustSplat: Decoupling Densification and Dynamics for Transient-Free 3DGS},
+    booktitle = {ICCV},
+    year      = {2025}
 }
 ```
 
