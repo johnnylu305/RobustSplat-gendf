@@ -20,8 +20,8 @@ class Camera(nn.Module):
     def __init__(self, need_resize, resolution, colmap_id, R, T, FoVx, FoVy, depth_params, image, invdepthmap,
                  image_name, uid,
                  trans=np.array([0.0, 0.0, 0.0]), scale=1.0, data_device = "cuda",
-                 train_test_exp = False, is_test_dataset = False, is_test_view = False
-                 ):
+                 train_test_exp = False, is_test_dataset = False, is_test_view = False,
+                 crop=None, map1=None, map2=None):
         super(Camera, self).__init__()
 
         self.uid = uid
@@ -39,8 +39,9 @@ class Camera(nn.Module):
             print(f"[Warning] Custom device {data_device} failed, fallback to default cuda device" )
             self.data_device = torch.device("cuda")
 
-        resized_image_rgb = PILtoTorch(image, resolution, need_resize)
+        resized_image_rgb = PILtoTorch(image, resolution, need_resize, crop, map1, map2)
         gt_image = resized_image_rgb[:3, ...]
+
         self.alpha_mask = None
         if resized_image_rgb.shape[0] == 4:
             self.alpha_mask = resized_image_rgb[3:4, ...].to(self.data_device)

@@ -14,13 +14,25 @@ import sys
 from datetime import datetime
 import numpy as np
 import random
+import cv2
 
 def inverse_sigmoid(x):
     return torch.log(x/(1-x))
 
-def PILtoTorch(pil_image, resolution, need_resize):
+def PILtoTorch(pil_image, resolution, need_resize, crop, map1, map2):
     resized_image_PIL = pil_image.resize(resolution) if need_resize else pil_image
-    resized_image = torch.from_numpy(np.array(resized_image_PIL)) / 255.0
+
+    resized_image = np.array(resized_image_PIL)
+
+    # undistortion and crop
+    # --- undistort
+    resized_image = cv2.remap(resized_image, map1, map2, interpolation=cv2.INTER_LINEAR)
+    # --- crop (global crop)
+    x_min, y_min, x_max, y_max = crop
+    resized_image = resized_image[y_min:y_max, x_min:x_max]
+
+    resized_image = torch.from_numpy(resized_image) / 255.0
+
     if len(resized_image.shape) == 3:
         return resized_image.permute(2, 0, 1)
     else:

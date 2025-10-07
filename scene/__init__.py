@@ -48,19 +48,20 @@ class Scene:
         else:
             assert False, "Could not recognize scene type!"
 
-        if not self.loaded_iter:
-            with open(scene_info.ply_path, 'rb') as src_file, open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
-                dest_file.write(src_file.read())
-            json_cams = []
-            camlist = []
-            if scene_info.test_cameras:
-                camlist.extend(scene_info.test_cameras)
-            if scene_info.train_cameras:
-                camlist.extend(scene_info.train_cameras)
-            for id, cam in enumerate(camlist):
-                json_cams.append(camera_to_JSON(id, cam))
-            with open(os.path.join(self.model_path, "cameras.json"), 'w') as file:
-                json.dump(json_cams, file)
+        # save space
+        #if not self.loaded_iter:
+        #    with open(scene_info.ply_path, 'rb') as src_file, open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
+        #        dest_file.write(src_file.read())
+        #    json_cams = []
+        #    camlist = []
+        #    if scene_info.test_cameras:
+        #        camlist.extend(scene_info.test_cameras)
+        #    if scene_info.train_cameras:
+        #        camlist.extend(scene_info.train_cameras)
+        #    for id, cam in enumerate(camlist):
+        #        json_cams.append(camera_to_JSON(id, cam))
+        #    with open(os.path.join(self.model_path, "cameras.json"), 'w') as file:
+        #        json.dump(json_cams, file)
 
         if shuffle:
             random.shuffle(scene_info.train_cameras)  # Multi-res consistent random shuffling

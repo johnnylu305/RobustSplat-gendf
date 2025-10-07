@@ -33,7 +33,35 @@ def readImages(renders_dir, gt_dir):
         image_names.append(fname)
     return renders, gts, image_names
 
-def evaluate(model_paths):
+def read_val_images(dir_path):
+    dir_path = Path(dir_path)
+    renders = []
+    gts = []
+    image_names = []
+
+    for fname in sorted(os.listdir(dir_path)):
+        if fname.startswith("val") and fname.endswith(".png"):
+            img_path = dir_path / fname
+            image = Image.open(img_path).convert("RGB")
+
+            W, H = image.size
+            mid = W // 2
+
+            # Split left (GT) and right (Rendering)
+            gt_img = image.crop((0, 0, mid, H))
+            render_img = image.crop((mid, 0, W, H))
+
+            # Convert to tensor and move to GPU
+            gt_tensor = tf.to_tensor(gt_img).unsqueeze(0).cuda()
+            render_tensor = tf.to_tensor(render_img).unsqueeze(0).cuda()
+
+            gts.append(gt_tensor)
+            renders.append(render_tensor)
+            image_names.append(fname)
+
+    return renders, gts, image_names
+
+def evaluate(model_paths, step):
 
     full_dict = {}
     per_view_dict = {}
@@ -42,55 +70,51 @@ def evaluate(model_paths):
     print("")
 
     for scene_dir in model_paths:
-        try:
+        if True:
             print("Scene:", scene_dir)
             full_dict[scene_dir] = {}
             per_view_dict[scene_dir] = {}
             full_dict_polytopeonly[scene_dir] = {}
             per_view_dict_polytopeonly[scene_dir] = {}
 
-            test_dir = Path(scene_dir) / "test"
+            #test_dir = Path(scene_dir) / "test"
+            test_dir = Path(scene_dir) / "renders"
 
-            for method in os.listdir(test_dir):
-                print("Method:", method)
+            full_dict[scene_dir] = {}
+            per_view_dict[scene_dir] = {}
+            full_dict_polytopeonly[scene_dir] = {}
+            per_view_dict_polytopeonly[scene_dir] = {}
 
-                full_dict[scene_dir][method] = {}
-                per_view_dict[scene_dir][method] = {}
-                full_dict_polytopeonly[scene_dir][method] = {}
-                per_view_dict_polytopeonly[scene_dir][method] = {}
+            renders, gts, image_names = read_val_images(test_dir)
 
-                method_dir = test_dir / method
-                gt_dir = method_dir/ "gt"
-                renders_dir = method_dir / "renders"
-                renders, gts, image_names = readImages(renders_dir, gt_dir)
+            ssims = []
+            psnrs = []
+            lpipss = []
 
-                ssims = []
-                psnrs = []
-                lpipss = []
+            for idx in tqdm(range(len(renders)), desc="Metric evaluation progress"):
+                ssims.append(ssim(renders[idx], gts[idx]))
+                psnrs.append(psnr(renders[idx], gts[idx]))
+                lpipss.append(lpips(renders[idx], gts[idx], net_type='alex'))#'vgg'))
 
-                for idx in tqdm(range(len(renders)), desc="Metric evaluation progress"):
-                    ssims.append(ssim(renders[idx], gts[idx]))
-                    psnrs.append(psnr(renders[idx], gts[idx]))
-                    lpipss.append(lpips(renders[idx], gts[idx], net_type='vgg'))
+            print("  SSIM : {:>12.7f}".format(torch.tensor(ssims).mean(), ".5"))
+            print("  PSNR : {:>12.7f}".format(torch.tensor(psnrs).mean(), ".5"))
+            print("  LPIPS: {:>12.7f}".format(torch.tensor(lpipss).mean(), ".5"))
+            print("")
 
-                print("  SSIM : {:>12.7f}".format(torch.tensor(ssims).mean(), ".5"))
-                print("  PSNR : {:>12.7f}".format(torch.tensor(psnrs).mean(), ".5"))
-                print("  LPIPS: {:>12.7f}".format(torch.tensor(lpipss).mean(), ".5"))
-                print("")
+            full_dict[scene_dir].update({"ssim": torch.tensor(ssims).mean().item(),
+                                         "psnr": torch.tensor(psnrs).mean().item(),
+                                         "lpips": torch.tensor(lpipss).mean().item()})
+            #per_view_dict[scene_dir].update({"SSIM": {name: ssim for ssim, name in zip(torch.tensor(ssims).tolist(), image_names)},
+            #                                         "PSNR": {name: psnr for psnr, name in zip(torch.tensor(psnrs).tolist(), image_names)},
+            #                                         "LPIPS": {name: lp for lp, name in zip(torch.tensor(lpipss).tolist(), image_names)}})
+            
 
-                full_dict[scene_dir][method].update({"SSIM": torch.tensor(ssims).mean().item(),
-                                                        "PSNR": torch.tensor(psnrs).mean().item(),
-                                                        "LPIPS": torch.tensor(lpipss).mean().item()})
-                per_view_dict[scene_dir][method].update({"SSIM": {name: ssim for ssim, name in zip(torch.tensor(ssims).tolist(), image_names)},
-                                                            "PSNR": {name: psnr for psnr, name in zip(torch.tensor(psnrs).tolist(), image_names)},
-                                                            "LPIPS": {name: lp for lp, name in zip(torch.tensor(lpipss).tolist(), image_names)}})
-
-            with open(scene_dir + "/results.json", 'w') as fp:
+            stats_dir = os.path.join(scene_dir, "stats")
+            os.makedirs(stats_dir, exist_ok=True)
+            with open(stats_dir + f"/val_step{step}.json", 'w') as fp:
                 json.dump(full_dict[scene_dir], fp, indent=True)
-            with open(scene_dir + "/per_view.json", 'w') as fp:
-                json.dump(per_view_dict[scene_dir], fp, indent=True)
-        except:
-            print("Unable to compute metrics for model", scene_dir)
+            #with open(scene_dir + "/per_view.json", 'w') as fp:
+            #    json.dump(per_view_dict[scene_dir], fp, indent=True)
 
 if __name__ == "__main__":
     device = torch.device("cuda:0")
@@ -99,5 +123,6 @@ if __name__ == "__main__":
     # Set up command line argument parser
     parser = ArgumentParser(description="Training script parameters")
     parser.add_argument('--model_paths', '-m', required=True, nargs="+", type=str, default=[])
+    parser.add_argument('--iteration', '-i', required=True, type=int, default=-1)
     args = parser.parse_args()
-    evaluate(args.model_paths)
+    evaluate(args.model_paths, args.iteration)

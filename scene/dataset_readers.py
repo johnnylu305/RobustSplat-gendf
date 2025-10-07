@@ -11,6 +11,7 @@
 
 import os
 import sys
+import cv2
 from PIL import Image
 from typing import NamedTuple
 from scene.colmap_loader import read_extrinsics_text, read_intrinsics_text, qvec2rotmat, \
@@ -36,6 +37,11 @@ class CameraInfo(NamedTuple):
     width: int
     height: int
     is_test: bool
+    # --- new required fields for undistortion & cropping ---
+    K: np.ndarray                           # rectified intrinsic after undistortion + crop
+    undistort_map1: np.ndarray              # cv2 undistortion map1
+    undistort_map2: np.ndarray              # cv2 undistortion map2
+    crop: tuple[int, int, int, int]         # global crop (x_min, y_min, x_max, y_max)
 
 class SceneInfo(NamedTuple):
     point_cloud: BasicPointCloud
@@ -69,6 +75,82 @@ def getNerfppNorm(cam_info):
     return {"translate": translate, "radius": radius}
 
 def readColmapCameras(cam_extrinsics, cam_intrinsics, depths_params, images_folder, depths_folder, test_cam_names_list):
+    
+    # prepare for undistortion
+    # 0) Compute scale from actual images vs COLMAP images (one-level only)
+    images_folder = Path(images_folder)
+    images_folder_8 = images_folder.parent / f"{images_folder.name}_8"
+
+    sample_8 = next((p for p in images_folder_8.glob("*") if p.is_file()), None)
+    if sample_8 is None:
+        raise FileNotFoundError(f"No files in {images_folder_8}")
+    W8, H8 = Image.open(sample_8).size
+
+    sample_full = next((p for p in images_folder.glob("*") if p.is_file()), None)
+    if sample_full is None:
+        raise FileNotFoundError(f"No files in {images_folder}")
+    Wf, Hf = Image.open(sample_full).size
+
+    s_width  = W8 / Wf
+    s_height = H8 / Hf
+
+
+    # 1) Rescale intrinsics + size for each camera (OPENCV)
+    for cam_id, intr in cam_intrinsics.items():
+        assert intr.model == "OPENCV", f"Expected OPENCV, got {intr.model}"
+        # intr.params = [fx, fy, cx, cy, k1, k2, p1, p2]
+        params = np.asarray(intr.params, dtype=np.float32)
+
+        fx, fy, cx, cy = params[:4]
+        fx *= s_width
+        fy *= s_height
+        cx *= s_width
+        cy *= s_height
+        params[:4] = [fx, fy, cx, cy]  # keep distortion terms unchanged
+        new_intr = intr._replace(width=W8, height=H8, params=params)
+        cam_intrinsics[cam_id] = new_intr
+
+
+    undistort_info_by_name = {}   # { image_name: {"new_K", "roi", "map1", "map2"} }
+    _all_rois = []
+
+    for key in cam_extrinsics:
+        extr = cam_extrinsics[key]
+        intr = cam_intrinsics[extr.camera_id]
+        assert intr.model == "OPENCV", f"Expected OPENCV, got {intr.model}"
+
+        w, h = int(intr.width), int(intr.height)
+        params = np.asarray(intr.params, dtype=np.float32)
+        fx, fy, cx, cy = params[:4]
+        # OPENCV distortion: [k1, k2, p1, p2]
+        D = params[4:8].copy()
+
+        K = np.array([[fx, 0.0, cx],
+                      [0.0, fy, cy],
+                      [0.0, 0.0, 1.0]], dtype=np.float32)
+
+        new_K, roi = cv2.getOptimalNewCameraMatrix(K, D, (w, h), alpha=0)
+        map1, map2 = cv2.initUndistortRectifyMap(
+            cameraMatrix=K, distCoeffs=D, R=np.eye(3, dtype=np.float32),
+            newCameraMatrix=new_K, size=(w, h), m1type=cv2.CV_16SC2
+        )
+
+        undistort_info_by_name[extr.name] = {
+            "new_K": new_K, "roi": roi, "map1": map1, "map2": map2,
+            "size": (w, h)
+        }
+        _all_rois.append(roi)
+
+    # Global crop: intersection of all ROIs
+    x_min = max(r[0] for r in _all_rois)
+    y_min = max(r[1] for r in _all_rois)
+    x_max = min(r[0] + r[2] for r in _all_rois)
+    y_max = min(r[1] + r[3] for r in _all_rois)
+    crop_w, crop_h = x_max - x_min, y_max - y_min
+
+    global_crop = (x_min, y_min, x_max, y_max)
+
+
     cam_infos = []
     for idx, key in enumerate(cam_extrinsics):
         sys.stdout.write('\r')
@@ -85,18 +167,32 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, depths_params, images_fold
         R = np.transpose(qvec2rotmat(extr.qvec))
         T = np.array(extr.tvec)
 
-        if intr.model=="SIMPLE_PINHOLE":
-            focal_length_x = intr.params[0]
-            FovY = focal2fov(focal_length_x, height)
-            FovX = focal2fov(focal_length_x, width)
-        elif intr.model=="PINHOLE":
-            focal_length_x = intr.params[0]
-            focal_length_y = intr.params[1]
-            FovY = focal2fov(focal_length_y, height)
-            FovX = focal2fov(focal_length_x, width)
-        else:
-            assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
+        #if intr.model=="SIMPLE_PINHOLE":
+        #    focal_length_x = intr.params[0]
+        #    FovY = focal2fov(focal_length_x, height)
+        #    FovX = focal2fov(focal_length_x, width)
+        #elif intr.model=="PINHOLE":
+        #    focal_length_x = intr.params[0]
+        #    focal_length_y = intr.params[1]
+        #    FovY = focal2fov(focal_length_y, height)
+        #    FovX = focal2fov(focal_length_x, width)
+        #else:
+        #    assert False, "Colmap camera model not handled: only undistorted datasets (PINHOLE or SIMPLE_PINHOLE cameras) supported!"
+        
+        # ---- use rectified intrinsics + global crop ----
+        info = undistort_info_by_name[extr.name]
+        new_K = info["new_K"].copy()  # rectified K at full (scaled) size
+        x_min, y_min, x_max, y_max = global_crop
+        crop_w, crop_h = (x_max - x_min), (y_max - y_min)
 
+        # shift principal point to cropped coordinate frame
+        new_K[0, 2] -= x_min
+        new_K[1, 2] -= y_min
+
+        fx_u, fy_u = float(new_K[0, 0]), float(new_K[1, 1])
+        FovX = focal2fov(fx_u, crop_w)
+        FovY = focal2fov(fy_u, crop_h)
+        
         n_remove = len(extr.name.split('.')[-1]) + 1
         depth_params = None
         if depths_params is not None:
@@ -111,7 +207,11 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, depths_params, images_fold
 
         cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, depth_params=depth_params,
                               image_path=image_path, image_name=image_name, depth_path=depth_path,
-                              width=width, height=height, is_test=image_name in test_cam_names_list)
+                              width=crop_w, height=crop_h, is_test=image_name in test_cam_names_list, 
+                              K=new_K,
+                              undistort_map1=info["map1"],
+                              undistort_map2=info["map2"],
+                              crop=(x_min, y_min, x_max, y_max),)
         cam_infos.append(cam_info)
 
     sys.stdout.write('\n')

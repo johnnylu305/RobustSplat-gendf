@@ -19,6 +19,7 @@ import os
 WARNED = False
 
 def loadCam(args, id, cam_info, resolution_scale, is_nerf_synthetic, is_test_dataset):
+
     if args.resolution > 1:
         load_path = os.path.join(args.source_path, f"images_{int(resolution_scale * args.resolution)}", os.path.basename(cam_info.image_path))
         need_resize = not os.path.exists(load_path)
@@ -71,7 +72,8 @@ def loadCam(args, id, cam_info, resolution_scale, is_nerf_synthetic, is_test_dat
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY, depth_params=cam_info.depth_params,
                   image=image, invdepthmap=invdepthmap,
                   image_name=cam_info.image_name, uid=id, data_device=args.data_device,
-                  train_test_exp=args.train_test_exp, is_test_dataset=is_test_dataset, is_test_view=cam_info.is_test)
+                  train_test_exp=args.train_test_exp, is_test_dataset=is_test_dataset, is_test_view=cam_info.is_test, 
+                  crop=cam_info.crop, map1=cam_info.undistort_map1, map2=cam_info.undistort_map2)
 
 def cameraList_from_camInfos(cam_infos, resolution_scale, args, is_nerf_synthetic, is_test_dataset):
     camera_list = []
